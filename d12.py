@@ -2,7 +2,7 @@ import numpy as np
 from collections import defaultdict, deque
 from math import prod, sqrt, floor, ceil
 
-PART_2 = True
+PART_2 = False
 
 def parse_input(input: str):
     patterns = []
