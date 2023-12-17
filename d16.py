@@ -15,9 +15,72 @@ def parse_input(input: str):
 
 
 def trace_grid(contraption):
+  rows, cols = contraption.shape
   value = 0
 
-  return value
+  # We need to keep track of the current state (row, col, direction) for a ray 
+  # until it passes out of bounds. Every node it visits needs to be marked as visited,
+  # and the final value is the count of the number of nodes visited. Visiting the 
+  # same node multiple times does not count more than once.
+  visited = set((0,0))
+  queue = deque()
+  visit_map = np.zeros((rows, cols), dtype=int)
+
+  # the beam starts in the top-left (0,0) heading right ('R'), which we'll represent
+  # as entering (0,1) while heading 'R'.
+  queue.append((0, 1, 'R'))
+
+  # default directions, used for '.' and some other cases
+  directions = {'R': (0, 1), 'L': (0, -1), 'U': (-1, 0), 'D': (1,0)}
+  
+  while queue:
+    row, col, direction = queue.popleft()
+    if not (0 <= row < rows and 0 <= col < cols):
+      continue
+
+    if (row, col) not in visited:
+      visit_map[row, col] += 1
+      visited.add((row, col))
+    
+    # the default is to continue in the same direction
+    dr, dc = directions[direction]
+    
+    if contraption[row, col] == '.':
+      # continue in the same direction
+      queue.append((row + dr, col + dc, direction))
+    elif contraption[row, col] == '|':
+      if direction in 'UD':
+        queue.append((row + dr, col + dc, direction))
+      elif direction in 'RL':
+        queue.append((row - 1, col, 'U'))
+        queue.append((row + 1, col, 'D'))
+    elif contraption[row, col] == '-':
+      if direction in 'RL':
+        queue.append((row + dr, col + dc, direction))
+      elif direction in 'UD':
+        queue.append((row, col+1, 'R'))
+        queue.append((row, col-1, 'L'))
+    elif contraption[row, col] == '/':
+      if direction == 'R':
+        queue.append((row - 1, col, 'U'))
+      elif direction == 'L':
+        queue.append((row + 1, col, 'D'))
+      elif direction == 'U':
+        queue.append((row, col+1, 'R'))
+      elif direction == 'D':
+        queue.append((row, col-1, 'L'))
+    elif contraption[row, col] == '\\':
+        if direction == 'R':
+          queue.append((row + 1, col, 'D'))
+        elif direction == 'L':
+          queue.append((row - 1, col, 'U'))
+        elif direction == 'U':
+          queue.append((row, col-1, 'L'))
+        elif direction == 'D':
+          queue.append((row, col+1, 'R'))
+
+  print(visit_map)
+  return len(visited)
 
 
 
@@ -29,7 +92,7 @@ def main():
   contraption = parse_input(input)
   print(contraption)
 
-  answer = 0
+  answer = trace_grid(contraption)
 
   print(f'answer is {answer}')
 
