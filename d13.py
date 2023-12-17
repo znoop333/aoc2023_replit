@@ -32,7 +32,8 @@ def reflect_ud(puzzle):
       max_rows = min(r, rows - r - 2)
       # print(f'max_rows: {max_rows} must check {range(r - 1, r - max_rows - 1, -1)} against {range(r + 2, r + max_rows + 2, 1)}')
       for i, j in zip(range(r - 1, r - max_rows - 1, -1),
-                      range(r + 2, r + max_rows + 2, 1), strict=True):
+                      range(r + 2, r + max_rows + 2, 1),
+                      strict=True):
         if np.any(puzzle[i, :] != puzzle[j, :]):
           break
       else:
@@ -46,7 +47,7 @@ def reflect_lr(puzzle):
 
 def main():
   with open("d13_input.txt", "r") as f:
-  # with open("d13_test_input.txt", "r") as f:
+    # with open("d13_test_input.txt", "r") as f:
     input = f.read()
 
   puzzles = parse_input(input)

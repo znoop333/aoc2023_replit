@@ -1,18 +1,3 @@
 {
-  "files": {
-    "d13.py": [
-      {
-        "id": "6ac9ffb4-7856-46f2-847e-103221d1a33f",
-        "line": 26,
-        "version": 561,
-        "index": 673
-      },
-      {
-        "id": "f6838313-04f6-478c-9bad-80ad7a7783bb",
-        "line": 33,
-        "version": 563,
-        "index": 886
-      }
-    ]
-  }
+  "files": {}
 }
