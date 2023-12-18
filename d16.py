@@ -13,6 +13,14 @@ def parse_input(input: str):
 
   return contraption
 
+def print_contraption(contraption):
+  rows, cols = contraption.shape
+  s = ''
+  for r in contraption:
+    s += ''.join([str(x) for x in r])
+    s += '\n'
+  print(s)
+  
 
 def trace_grid(contraption):
   rows, cols = contraption.shape
@@ -22,13 +30,13 @@ def trace_grid(contraption):
   # until it passes out of bounds. Every node it visits needs to be marked as visited,
   # and the final value is the count of the number of nodes visited. Visiting the 
   # same node multiple times does not count more than once.
-  visited = set((0,0))
+  visited = set()
   queue = deque()
   visit_map = np.zeros((rows, cols), dtype=int)
 
   # the beam starts in the top-left (0,0) heading right ('R'), which we'll represent
-  # as entering (0,1) while heading 'R'.
-  queue.append((0, 1, 'R'))
+  # as entering (0, 0) while heading 'R'.
+  queue.append((0, 0, 'R'))
 
   # default directions, used for '.' and some other cases
   directions = {'R': (0, 1), 'L': (0, -1), 'U': (-1, 0), 'D': (1,0)}
@@ -38,10 +46,12 @@ def trace_grid(contraption):
     if not (0 <= row < rows and 0 <= col < cols):
       continue
 
-    if (row, col) not in visited:
-      visit_map[row, col] += 1
-      visited.add((row, col))
-    
+    if (row, col, direction) in visited:
+      continue
+
+    visit_map[row, col] = 1
+    visited.add((row, col, direction))
+      
     # the default is to continue in the same direction
     dr, dc = directions[direction]
     
@@ -78,15 +88,16 @@ def trace_grid(contraption):
           queue.append((row, col-1, 'L'))
         elif direction == 'D':
           queue.append((row, col+1, 'R'))
+  
+  print_contraption(visit_map)
 
-  print(visit_map)
-  return len(visited)
+  return np.count_nonzero(visit_map)
 
 
 
 def main():
-  # with open("d16_input.txt", "r") as f:
-  with open("d16_test_input.txt", "r") as f:
+  with open("d16_input.txt", "r") as f:
+  # with open("d16_test_input.txt", "r") as f:
     input = f.read()
 
   contraption = parse_input(input)
