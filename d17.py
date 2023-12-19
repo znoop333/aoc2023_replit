@@ -25,11 +25,59 @@ def print_factory_map(contraption):
   print(s)
 
 
+def neighbors4_simple(row: int, col: int, graph: np.array):
+  height, width = graph.shape
+  for dr, dc, dir in [(0, 1, 'U'), (0, -1, 'D'), (1, 0, 'R'), (-1, 0, 'L')]:
+      ii = row + dr
+      jj = col + dc
+      if 0 <= ii < height and 0 <= jj < width:
+          yield ii, jj, dir
+
+
 def min_heat_loss(factory_map):
   rows, cols = factory_map.shape
   value = 0
+  dist = np.inf * np.ones((rows, cols))
+  visited = np.zeros((rows, cols))
+
+  # https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm#Using_a_priority_queue
+
+  # minheap format: distance so far, the source tile, direction being traveled, travel counter.
+  h = [(factory_map[rows-1, cols-1], rows-1, cols-1, '', 0)]
+  dist[rows-1, cols-1] = factory_map[rows-1, cols-1]
   
 
+  while h:
+    d, r, c, dir, travel_counter = heapq.heappop(h)
+
+    if r == 0 and c == 0:
+      # we found the shortest path to the start!
+      value = d
+      break
+    
+    for neighbor_r, neighbor_c, neighbor_dir in neighbors4_simple(r, c, factory_map):
+      if visited[neighbor_r, neighbor_c]:
+        continue
+      
+      visited[neighbor_r, neighbor_c] = 1
+      dist[neighbor_r, neighbor_c] = d
+
+      # determine if travel_counter should increase
+      if dir == neighbor_dir:
+        travel_counter += 1
+      else:
+        travel_counter = 0
+      
+      if travel_counter == 2:
+        # cannot add this edge: 
+        # to satisfy the rule that 3 moves in the same direction are illegal, we'll pretend there's no edge after travel counter is 2.
+        pass
+      else:
+        heapq.heappush(h, (d + factory_map[neighbor_r, neighbor_c], neighbor_r, neighbor_c, neighbor_dir, travel_counter))
+        
+
+  print_factory_map(dist)
+  print_factory_map(visited)
   return value
 
 
