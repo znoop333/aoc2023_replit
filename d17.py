@@ -10,7 +10,7 @@ def parse_input(input: str):
   first_line = input.split()[0]
   width = len(first_line)
   height = len(input.split())
-  factory_map = np.array([int(ch) for ln in input.split() for ch in ln])
+  factory_map = np.array([int(ch) for ln in input.split() for ch in ln], dtype=int)
   factory_map = factory_map.reshape([height, width])
 
   return factory_map
@@ -27,7 +27,7 @@ def print_factory_map(contraption):
 
 def neighbors4_simple(row: int, col: int, graph: np.array):
   height, width = graph.shape
-  for dr, dc, dir in [(0, 1, 'U'), (0, -1, 'D'), (1, 0, 'R'), (-1, 0, 'L')]:
+  for dr, dc, dir in [(0, 1, 'D'), (0, -1, 'U'), (1, 0, 'R'), (-1, 0, 'L')]:
       ii = row + dr
       jj = col + dc
       if 0 <= ii < height and 0 <= jj < width:
@@ -37,15 +37,15 @@ def neighbors4_simple(row: int, col: int, graph: np.array):
 def min_heat_loss(factory_map):
   rows, cols = factory_map.shape
   value = 0
-  dist = np.inf * np.ones((rows, cols))
-  visited = np.zeros((rows, cols))
+  dist = np.inf * np.ones((rows, cols), dtype=int)
+  visited = np.zeros((rows, cols), dtype=int)
 
   # https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm#Using_a_priority_queue
 
   # minheap format: distance so far, the source tile, direction being traveled, travel counter.
   h = [(factory_map[rows-1, cols-1], rows-1, cols-1, '', 0)]
   dist[rows-1, cols-1] = factory_map[rows-1, cols-1]
-  
+  visited[rows-1, cols-1] = 1
 
   while h:
     d, r, c, dir, travel_counter = heapq.heappop(h)
@@ -62,13 +62,16 @@ def min_heat_loss(factory_map):
       visited[neighbor_r, neighbor_c] = 1
       dist[neighbor_r, neighbor_c] = d
 
+      print_factory_map(dist)
+      print_factory_map(visited)
+
       # determine if travel_counter should increase
       if dir == neighbor_dir:
         travel_counter += 1
       else:
         travel_counter = 0
       
-      if travel_counter == 2:
+      if travel_counter >= 2:
         # cannot add this edge: 
         # to satisfy the rule that 3 moves in the same direction are illegal, we'll pretend there's no edge after travel counter is 2.
         pass
