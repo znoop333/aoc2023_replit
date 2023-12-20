@@ -28,10 +28,10 @@ def print_factory_map(contraption):
 def neighbors4_simple(row: int, col: int, graph: np.array):
   height, width = graph.shape
   for dr, dc, dir in [(0, 1, 'D'), (0, -1, 'U'), (1, 0, 'R'), (-1, 0, 'L')]:
-      ii = row + dr
-      jj = col + dc
-      if 0 <= ii < height and 0 <= jj < width:
-          yield ii, jj, dir
+    ii = row + dr
+    jj = col + dc
+    if 0 <= ii < height and 0 <= jj < width:
+      yield ii, jj, dir
 
 
 def min_heat_loss(factory_map):
@@ -43,9 +43,7 @@ def min_heat_loss(factory_map):
   # https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm#Using_a_priority_queue
 
   # minheap format: distance so far, the source tile, direction being traveled, travel counter.
-  h = [(factory_map[rows-1, cols-1], rows-1, cols-1, '', 0)]
-  dist[rows-1, cols-1] = factory_map[rows-1, cols-1]
-  visited[rows-1, cols-1] = 1
+  h = [(factory_map[rows - 1, cols - 1], rows - 1, cols - 1, '', 0)]
 
   while h:
     d, r, c, dir, travel_counter = heapq.heappop(h)
@@ -54,33 +52,31 @@ def min_heat_loss(factory_map):
       # we found the shortest path to the start!
       value = d
       break
-    
+
+    if visited[r, c]:
+      continue
+
+    visited[r, c] = 1
+    dist[r, c] = d
+
+    # print_factory_map(dist)
+    # print_factory_map(visited)
+
     for neighbor_r, neighbor_c, neighbor_dir in neighbors4_simple(r, c, factory_map):
-      if visited[neighbor_r, neighbor_c]:
-        continue
-
-      if dist[neighbor_r, neighbor_c] <= d:
-        continue
-        
-      visited[neighbor_r, neighbor_c] = 1
-      dist[neighbor_r, neighbor_c] = d
-
-      # print_factory_map(dist)
-      # print_factory_map(visited)
-
       # determine if travel_counter should increase
       if dir == neighbor_dir:
-        travel_counter += 1
+        tc = travel_counter + 1
       else:
-        travel_counter = 0
-      
-      if travel_counter >= 2:
-        # cannot add this edge: 
+        tc = 0
+
+      if travel_counter >= 3:
+        # cannot add this edge:
         # to satisfy the rule that 3 moves in the same direction are illegal, we'll pretend there's no edge after travel counter is 2.
-        pass
-      else:
-        heapq.heappush(h, (d + factory_map[neighbor_r, neighbor_c], neighbor_r, neighbor_c, neighbor_dir, travel_counter))
-        
+        continue
+
+      alt = d + factory_map[neighbor_r, neighbor_c]
+      if alt < dist[neighbor_r, neighbor_c]:
+        heapq.heappush(h, (alt, neighbor_r, neighbor_c, neighbor_dir, tc))
 
   print_factory_map(dist)
   print_factory_map(visited)
