@@ -25,6 +25,27 @@ def print_factory_map(contraption):
   print(s)
 
 
+def print_path(contraption, prev):
+  rows, cols = contraption.shape
+  r, c = 0, 0
+  path_visited = set()
+  while not (r, c) == (rows - 1, cols - 1):
+    path_visited.add((r, c))
+    r, c = prev[(r, c)]
+
+  path_visited.add((rows - 1, cols - 1))
+
+  s = ''
+  for r in range(rows):
+    for c in range(cols):
+      if (r, c) in path_visited:
+        s += ' ' + str(contraption[r, c])
+      else:
+        s += ' .'
+    s += '\n'
+  print(s)
+
+
 def neighbors4_simple(row: int, col: int, graph: np.array):
   height, width = graph.shape
   for dr, dc, dir in [(0, 1, 'D'), (0, -1, 'U'), (1, 0, 'R'), (-1, 0, 'L')]:
@@ -37,8 +58,9 @@ def neighbors4_simple(row: int, col: int, graph: np.array):
 def min_heat_loss(factory_map):
   rows, cols = factory_map.shape
   value = 0
-  dist = np.inf * np.ones((rows, cols), dtype=int)
+  dist = 2 ** 31 * np.ones((rows, cols), dtype=int)
   visited = np.zeros((rows, cols), dtype=int)
+  prev = {}
 
   # https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm#Using_a_priority_queue
 
@@ -76,10 +98,12 @@ def min_heat_loss(factory_map):
 
       alt = d + factory_map[neighbor_r, neighbor_c]
       if alt < dist[neighbor_r, neighbor_c]:
+        prev[(neighbor_r, neighbor_c)] = r, c
         heapq.heappush(h, (alt, neighbor_r, neighbor_c, neighbor_dir, tc))
 
   print_factory_map(dist)
   print_factory_map(visited)
+  print_path(factory_map, prev)
   return value
 
 
