@@ -20,7 +20,7 @@ def print_factory_map(contraption):
   rows, cols = contraption.shape
   s = ''
   for r in contraption:
-    s += ''.join([str(x) for x in r])
+    s += ' '.join([str(x) for x in r])
     s += '\n'
   print(s)
 
@@ -58,12 +58,15 @@ def min_heat_loss(factory_map):
     for neighbor_r, neighbor_c, neighbor_dir in neighbors4_simple(r, c, factory_map):
       if visited[neighbor_r, neighbor_c]:
         continue
-      
+
+      if dist[neighbor_r, neighbor_c] <= d:
+        continue
+        
       visited[neighbor_r, neighbor_c] = 1
       dist[neighbor_r, neighbor_c] = d
 
-      print_factory_map(dist)
-      print_factory_map(visited)
+      # print_factory_map(dist)
+      # print_factory_map(visited)
 
       # determine if travel_counter should increase
       if dir == neighbor_dir:
