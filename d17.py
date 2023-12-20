@@ -20,7 +20,9 @@ def print_factory_map(contraption):
   rows, cols = contraption.shape
   s = ''
   for r in contraption:
-    s += ' '.join([str(x) for x in r])
+    for x in r:
+      x = min(x, 999)
+      s += f' {x:03d}'
     s += '\n'
   print(s)
 
@@ -59,7 +61,7 @@ def min_heat_loss(factory_map):
   rows, cols = factory_map.shape
   value = 0
   dist = 2 ** 31 * np.ones((rows, cols), dtype=int)
-  visited = np.zeros((rows, cols), dtype=int)
+  visited = set()
   prev = {}
 
   # https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm#Using_a_priority_queue
@@ -75,14 +77,13 @@ def min_heat_loss(factory_map):
       value = d
       break
 
-    if visited[r, c]:
+    if (r, c, dir) in visited:
       continue
 
-    visited[r, c] = 1
+    visited.add((r, c, dir))
     dist[r, c] = d
 
     # print_factory_map(dist)
-    # print_factory_map(visited)
 
     for neighbor_r, neighbor_c, neighbor_dir in neighbors4_simple(r, c, factory_map):
       # determine if travel_counter should increase
@@ -91,7 +92,7 @@ def min_heat_loss(factory_map):
       else:
         tc = 0
 
-      if travel_counter >= 3:
+      if tc >= 2:
         # cannot add this edge:
         # to satisfy the rule that 3 moves in the same direction are illegal, we'll pretend there's no edge after travel counter is 2.
         continue
@@ -102,7 +103,6 @@ def min_heat_loss(factory_map):
         heapq.heappush(h, (alt, neighbor_r, neighbor_c, neighbor_dir, tc))
 
   print_factory_map(dist)
-  print_factory_map(visited)
   print_path(factory_map, prev)
   return value
 
@@ -111,6 +111,9 @@ def main():
   # with open("d17_input.txt", "r") as f:
   with open("d17_test_input.txt", "r") as f:
     input = f.read()
+
+  input = """112999
+911111"""
 
   factory_map = parse_input(input)
   print_factory_map(factory_map)
