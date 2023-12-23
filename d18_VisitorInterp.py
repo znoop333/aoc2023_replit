@@ -35,51 +35,51 @@ class d18_VisitorInterp(d18Visitor):
     self.visitChildren(ctx)
 
     # determine how big the lagoon is
-    M, N = 0, 0
+    M0, M1, N0, N1 = 0, 0, 0, 0
     r, c = 0, 0
     for dir_, dist, rgb in self.instructions:
       if dir_ == 'U':
         r -= dist
-        M = max(M, r)
       elif dir_ == 'D':
         r += dist
-        M = max(M, r)
       elif dir_ == 'R':
         c += dist
-        N = max(N, c)
       elif dir_ == 'L':
         c -= dist
-        N = max(N, c)
+      M0 = min(M0, r)
+      M1 = max(M1, r)
+      N0 = min(N0, c)
+      N1 = max(N1, c)
 
     # python counts from 0
-    M += 1
-    N += 1
+    M = M1 - M0 + 1
+    N = N1 - N0 + 1
     self.lagoon = np.zeros((M, N), dtype=int)
 
     # fill in the perimeter
-    r, c = 0, 0
+    r, c = M0, N0
     for dir_, dist, rgb in self.instructions:
-      if not (0 <= r < M) or not (0 <= c < N):
+      if not (0 <= r - M0 < M) or not (0 <= c - N0 < N):
         # this should never happen!
         1
       if dir_ == 'U':
         r1 = r - dist
-        self.lagoon[r1:r, c] = 1
+        self.lagoon[r1 - M0:r - M0, c - N0] = 1
         r = r1
       elif dir_ == 'D':
         r1 = r + dist
-        self.lagoon[r:r1 + 1, c] = 1
+        self.lagoon[r - M0:r1 + 1 - M0, c - N0] = 1
         r = r1
       elif dir_ == 'R':
         c1 = c + dist
-        self.lagoon[r, c:c1 + 1] = 1
+        self.lagoon[r - M0, c - N0:c1 - N0 + 1] = 1
         c = c1
       elif dir_ == 'L':
         c1 = c - dist
-        self.lagoon[r, c1:c + 1] = 1
+        self.lagoon[r - M0, c1 - N0:c - N0 + 1] = 1
         c = c1
 
-    # print(self.lagoon)
+    print(self.lagoon)
     self.answer = self.flood_interior()
 
   # Visit a parse tree produced by d18Parser#dig_instruction.
