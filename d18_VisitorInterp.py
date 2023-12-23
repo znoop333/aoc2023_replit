@@ -48,49 +48,50 @@ class d18_VisitorInterp(d18Visitor):
     self.visitChildren(ctx)
 
     # determine how big the lagoon is
-    M0, M1, N0, N1 = 0, 0, 0, 0
-    r, c = 0, 0
+    y0, y1, x0, x1 = 0, 0, 0, 0
+    x, y = 0, 0
     for dir_, dist, rgb in self.instructions:
       if dir_ == 'U':
-        r -= dist
+        y += dist
       elif dir_ == 'D':
-        r += dist
+        y -= dist
       elif dir_ == 'R':
-        c += dist
+        x += dist
       elif dir_ == 'L':
-        c -= dist
-      M0 = min(M0, r)
-      M1 = max(M1, r)
-      N0 = min(N0, c)
-      N1 = max(N1, c)
+        x -= dist
+      y0 = min(y0, y)
+      y1 = max(y1, y)
+      x0 = min(x0, x)
+      x1 = max(x1, x)
 
     # python counts from 0
-    M = M1 - M0 + 1
-    N = N1 - N0 + 1
+    M = y1 - y0 + 1
+    N = x1 - x0 + 1
     self.lagoon = np.zeros((M, N), dtype=int)
 
+    x2col = lambda xx: xx - x0
+    y2row = lambda yy: -yy + y1
+
     # fill in the perimeter
-    r, c = M0, N0
+    x, y = 0, 0
     for dir_, dist, rgb in self.instructions:
       if dir_ == 'U':
-        r1, r2, c1, c2 = r - dist, r, c, c
-        r -= dist
+        self.lagoon[y2row(y + dist): y2row(y) + 1, x2col(x)] = 1
+        y += dist
       elif dir_ == 'D':
-        r1, r2, c1, c2 = r, r + dist, c, c
-        r += dist
+        self.lagoon[y2row(y): y2row(y - dist) + 1, x2col(x)] = 1
+        y -= dist
       elif dir_ == 'R':
-        r1, r2, c1, c2 = r, r, c, c + dist
-        c += dist
+        self.lagoon[y2row(y), x2col(x): x2col(x + dist)] = 1
+        x += dist
       elif dir_ == 'L':
-        r1, r2, c1, c2 = r, r, c - dist, c
-        c -= dist
+        self.lagoon[y2row(y), x2col(x - dist): x2col(x)] = 1
+        x -= dist
 
-      if not (0 <= r - M0 < M and 0 <= c - N0 < N):
+      if not (0 <= x2col(x) <= M and 0 <= y2row(y) <= N):
         # this should never happen!
         print(
-          f'Drawing went out of bounds with instruction {dir_, dist, rgb} at r, c {r, c} resulting in {r - M0, c - N0}')
-
-      self.lagoon[r1 - M0: r2 - M0 + 1, c1 - N0: c2 - N0 + 1] = 1
+          f'Drawing went out of bounds with instruction {dir_, dist, rgb} at {x, y} resulting in {y2row(y), x2col(x)}')
 
     print_lagoon(self.lagoon)
     self.answer = self.flood_interior()
