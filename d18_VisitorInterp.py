@@ -60,8 +60,55 @@ def solve_sparse_lagoon(instructions):
   M = y1 - y0 + 1
   N = x1 - x0 + 1
 
-  x2col = lambda xx: xx - x0
-  y2row = lambda yy: -yy + y1
+  """
+the good news for the sparse solver is that we don't have to switch from (x,y) to matrix indices, which eliminates
+a source of bugs. the bad news is that our new algorithm is harder to implement: 
+for each row of the (x,y) grid, imagine a line going from -inf to +inf along x=x2 for some value of x2.
+the line starts outside the lagoon, and every time we cross a boundary of the lagoon, we toggle from being
+outside to inside and vice versa. eventually, we should end up outside the lagoon again. we need to count how
+many tiles are inside each interior region (edges included), and repeat the process for every value of x2.
+what makes this use far less memory than the matrix flood fill is that we don't have to explicitly represent
+all the intermediate tiles. instead, we can count by subtracting adjacent intersections.
+
+Example of this process for one line:
+  
+    111111111111111
+    1             1
+    111   1111    1
+------*___#--*____#----------- line y=4
+      1   1  111111 
+    111 111
+    1   1  
+    11  111
+     1    1
+     111111
+
+The line of y=4 intersects at *, #, and the interior distances can be computed by subtracting the indices of # from 
+the previous *. This scales well no matter how big the numbers get, requiring only subtractions.
+
+To make it work, we'll have to sort the intersections in each row and then step through them in order. Each intersection
+will toggle interior to exterior.
+
+Another problem to fix involves horizontal lines:
+
+----*_____________#---------------- line y=7
+    1             1
+    111   1111    1
+      1   1  1    1
+      1   1  111111 
+    111 111
+    1   1  
+    11  111
+     1    1
+     111111
+
+Line y=7 counts towards the total, but I don't want to represent it as a large number of *s or #s. So when the
+digger has a 'L' or 'R' instruction, we'll have to remember the start and end points as special intersections that 
+do count towards the total, even if they would be considered topologically outside the lagoon.
+
+We could operate on columns instead of rows, but that only changes the problem from being 'L','R' to 'U','D'.
+
+  """
 
   return 0
 
