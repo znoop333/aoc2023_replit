@@ -29,7 +29,7 @@ def print_factory_map(contraption):
 
 def print_path(contraption, prev):
   rows, cols = contraption.shape
-  r, c, direction = [(r_, c_, d_) for r_, c_, d_ in prev.keys() if r_ == rows - 1 and c_ == cols - 1]
+  r, c, direction = [(r_, c_, d_) for r_, c_, d_ in prev.keys() if r_ == rows - 1 and c_ == cols - 1][0]
   path_visited = set()
   while not (r, c) == (0, 0):
     path_visited.add((r, c))
@@ -100,8 +100,9 @@ def min_heat_loss(factory_map):
 
       alt = d + factory_map[neighbor_r, neighbor_c]
       if next_node not in dist or alt < dist[next_node]:
-        prev[(neighbor_r, neighbor_c, neighbor_dir)] = r, c, direction
-        heapq.heappush(h, (alt, neighbor_r, neighbor_c, neighbor_dir, tc))
+        if next_node not in prev:
+          prev[next_node] = r, c, direction
+          heapq.heappush(h, (alt, neighbor_r, neighbor_c, neighbor_dir, tc))
 
   # print_factory_map(dist)
   print_path(factory_map, prev)
