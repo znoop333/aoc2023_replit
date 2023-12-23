@@ -1,6 +1,6 @@
 grammar d18;
 start : instructions+=dig_instruction+ EOF;
-dig_instruction : dir=DIR dist=ID '(#' rgb=ID ')' '\n';
+dig_instruction : dir=DIR dist=ID '(#' real_direction=ID ')' '\n';
 
 
 fragment DIGIT: [0-9];

@@ -98,7 +98,10 @@ class d18_VisitorInterp(d18Visitor):
 
   # Visit a parse tree produced by d18Parser#dig_instruction.
   def visitDig_instruction(self, ctx: d18Parser.Dig_instructionContext):
-    self.instructions.append((ctx.dir_.text, int(ctx.dist.text), ctx.rgb.text))
+    hex_to_dir = {'0': 'R', '1': 'D', '2': 'L', '3': 'U'}
+    real_dir = hex_to_dir[ctx.real_direction.text[-1]]
+    real_dist = int(ctx.real_direction.text[:-1], 16)
+    self.instructions.append((ctx.dir_.text, int(ctx.dist.text), real_dir, real_dist))
     return self.visitChildren(ctx)
 
   def flood_interior(self):
