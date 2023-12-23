@@ -72,9 +72,6 @@ class d18_VisitorInterp(d18Visitor):
     # fill in the perimeter
     r, c = M0, N0
     for dir_, dist, rgb in self.instructions:
-      if not (0 <= r - M0 < M) or not (0 <= c - N0 < N):
-        # this should never happen!
-        1
       if dir_ == 'U':
         r1, r2, c1, c2 = r - dist, r, c, c
         r -= dist
@@ -87,6 +84,11 @@ class d18_VisitorInterp(d18Visitor):
       elif dir_ == 'L':
         r1, r2, c1, c2 = r, r, c - dist, c
         c -= dist
+
+      if not (0 <= r - M0 < M and 0 <= c - N0 < N):
+        # this should never happen!
+        print(
+          f'Drawing went out of bounds with instruction {dir_, dist, rgb} at r, c {r, c} resulting in {r - M0, c - N0}')
 
       self.lagoon[r1 - M0: r2 - M0 + 1, c1 - N0: c2 - N0 + 1] = 1
 
