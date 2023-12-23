@@ -63,6 +63,9 @@ def solve_sparse_lagoon(instructions):
   """
 the good news for the sparse solver is that we don't have to switch from (x,y) to matrix indices, which eliminates
 a source of bugs. the bad news is that our new algorithm is harder to implement: 
+
+if we assume that the lagoon is not self-intersecting, we can use a line-tracing algorithm.
+
 for each row of the (x,y) grid, imagine a line going from -inf to +inf along x=x2 for some value of x2.
 the line starts outside the lagoon, and every time we cross a boundary of the lagoon, we toggle from being
 outside to inside and vice versa. eventually, we should end up outside the lagoon again. we need to count how
@@ -75,7 +78,7 @@ Example of this process for one line:
     111111111111111
     1             1
     111   1111    1
-------*___#--*____#----------- line y=4
+------*___#--*____#----------- line y=4 has four intersections
       1   1  111111 
     111 111
     1   1  
@@ -107,6 +110,25 @@ digger has a 'L' or 'R' instruction, we'll have to remember the start and end po
 do count towards the total, even if they would be considered topologically outside the lagoon.
 
 We could operate on columns instead of rows, but that only changes the problem from being 'L','R' to 'U','D'.
+
+  Update: actually, the horizontal lines aren't so bad because they are trivial to compute how much they add to the
+  total (no ambiguity about how much to add - it's always the known start and end points of that segment). They can
+  still interact with other line segments:
+  
+
+    111111111111111
+    1             1
+----*_#___#__#____#--------- line y=5
+      1   1  1    1
+      1   1  111111 
+    111 111
+    1   1  
+    11  111
+     1    1
+     111111
+  
+Line y=5 is interesting because it has two horizontal line segments, which combine to make it as if the line only
+entered and exited the lagoon once!
 
   """
 
