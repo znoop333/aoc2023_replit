@@ -13,6 +13,8 @@ from math import prod, lcm
 from collections import defaultdict, deque
 import functools
 
+PART2 = True
+
 
 def neighbors4_simple(row: int, col: int, graph: np.array):
   height, width = graph.shape
@@ -36,6 +38,34 @@ def print_lagoon(lagoon):
   print(s)
 
 
+def solve_sparse_lagoon(instructions):
+  # determine how big the lagoon is
+  y0, y1, x0, x1 = 0, 0, 0, 0
+  x, y = 0, 0
+  for _, _, dir_, dist in instructions:
+    if dir_ == 'U':
+      y += dist
+    elif dir_ == 'D':
+      y -= dist
+    elif dir_ == 'R':
+      x += dist
+    elif dir_ == 'L':
+      x -= dist
+    y0 = min(y0, y)
+    y1 = max(y1, y)
+    x0 = min(x0, x)
+    x1 = max(x1, x)
+
+  # python counts from 0
+  M = y1 - y0 + 1
+  N = x1 - x0 + 1
+
+  x2col = lambda xx: xx - x0
+  y2row = lambda yy: -yy + y1
+
+  return 0
+
+
 class d18_VisitorInterp(d18Visitor):
   def __init__(self):
     self.root = None
@@ -47,10 +77,17 @@ class d18_VisitorInterp(d18Visitor):
   def visitStart(self, ctx: d18Parser.StartContext):
     self.visitChildren(ctx)
 
+    if PART2:
+      # Part 2 requires a totally different strategy. Solving Part 1 with a flood fill is OK because
+      # the dimensions aren't too big, but for Part 2, just allocating the lagoon memory is > 5 TiB for the test case
+      # input, and probably much bigger than that for the real input!
+      self.answer = solve_sparse_lagoon(self.instructions)
+      return
+
     # determine how big the lagoon is
     y0, y1, x0, x1 = 0, 0, 0, 0
     x, y = 0, 0
-    for dir_, dist, rgb in self.instructions:
+    for dir_, dist, _, _ in self.instructions:
       if dir_ == 'U':
         y += dist
       elif dir_ == 'D':
@@ -67,6 +104,7 @@ class d18_VisitorInterp(d18Visitor):
     # python counts from 0
     M = y1 - y0 + 1
     N = x1 - x0 + 1
+
     self.lagoon = np.zeros((M, N), dtype=int)
 
     x2col = lambda xx: xx - x0
@@ -74,7 +112,7 @@ class d18_VisitorInterp(d18Visitor):
 
     # fill in the perimeter
     x, y = 0, 0
-    for dir_, dist, rgb in self.instructions:
+    for dir_, dist, _, _ in self.instructions:
       if dir_ == 'U':
         self.lagoon[y2row(y + dist): y2row(y) + 1, x2col(x)] = 1
         y += dist
@@ -91,7 +129,7 @@ class d18_VisitorInterp(d18Visitor):
       if not (0 <= x2col(x) <= M and 0 <= y2row(y) <= N):
         # this should never happen!
         print(
-          f'Drawing went out of bounds with instruction {dir_, dist, rgb} at {x, y} resulting in {y2row(y), x2col(x)}')
+          f'Drawing went out of bounds with instruction {dir_, dist} at {x, y} resulting in {y2row(y), x2col(x)}')
 
     print_lagoon(self.lagoon)
     self.answer = self.flood_interior()
