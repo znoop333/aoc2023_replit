@@ -23,6 +23,19 @@ def neighbors4_simple(row: int, col: int, graph: np.array):
       yield ii, jj
 
 
+def print_lagoon(lagoon):
+  rows, cols = lagoon.shape
+  s = ''
+  for r in lagoon:
+    for x in r:
+      if x:
+        s += f'{x:d}'
+      else:
+        s += ' '
+    s += '\n'
+  print(s)
+
+
 class d18_VisitorInterp(d18Visitor):
   def __init__(self):
     self.root = None
@@ -63,23 +76,21 @@ class d18_VisitorInterp(d18Visitor):
         # this should never happen!
         1
       if dir_ == 'U':
-        r1 = r - dist
-        self.lagoon[r1 - M0:r - M0, c - N0] = 1
-        r = r1
+        r1, r2, c1, c2 = r - dist, r, c, c
+        r -= dist
       elif dir_ == 'D':
-        r1 = r + dist
-        self.lagoon[r - M0:r1 + 1 - M0, c - N0] = 1
-        r = r1
+        r1, r2, c1, c2 = r, r + dist, c, c
+        r += dist
       elif dir_ == 'R':
-        c1 = c + dist
-        self.lagoon[r - M0, c - N0:c1 - N0 + 1] = 1
-        c = c1
+        r1, r2, c1, c2 = r, r, c, c + dist
+        c += dist
       elif dir_ == 'L':
-        c1 = c - dist
-        self.lagoon[r - M0, c1 - N0:c - N0 + 1] = 1
-        c = c1
+        r1, r2, c1, c2 = r, r, c - dist, c
+        c -= dist
 
-    print(self.lagoon)
+      self.lagoon[r1 - M0: r2 - M0 + 1, c1 - N0: c2 - N0 + 1] = 1
+
+    print_lagoon(self.lagoon)
     self.answer = self.flood_interior()
 
   # Visit a parse tree produced by d18Parser#dig_instruction.
