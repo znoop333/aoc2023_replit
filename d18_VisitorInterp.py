@@ -40,6 +40,7 @@ def print_lagoon(lagoon):
 
 def solve_sparse_lagoon(instructions):
   # determine how big the lagoon is
+  area = 0
   y0, y1, x0, x1 = 0, 0, 0, 0
   x, y = 0, 0
   for _, _, dir_, dist in instructions:
@@ -56,105 +57,30 @@ def solve_sparse_lagoon(instructions):
     x0 = min(x0, x)
     x1 = max(x1, x)
 
-  # python counts from 0
-  M = y1 - y0 + 1
-  N = x1 - x0 + 1
+  # see d18_notes.txt for ideas behind the implementation below
+  x, y = 0, 0
+  perimeter = 0
+  # for _, _, dir_, dist in instructions:
+  for dir_, dist, _, _ in instructions:
+    if dir_ == 'U':
+      area -= (x - x0) * dist
+      y += dist
+      perimeter += dist
+    elif dir_ == 'D':
+      area += (x - x0) * (dist - 1)
+      y -= dist
+      perimeter += dist
+    elif dir_ == 'R':
+      # area += dist
+      x += dist
+      perimeter += dist
+    elif dir_ == 'L':
+      # area += dist
+      x -= dist
+      perimeter += dist
 
-  """
-the good news for the sparse solver is that we don't have to switch from (x,y) to matrix indices, which eliminates
-a source of bugs. the bad news is that our new algorithm is harder to implement: 
-
-if we assume that the lagoon is not self-intersecting, we can use a line-tracing algorithm.
-
-for each row of the (x,y) grid, imagine a line going from -inf to +inf along x=x2 for some value of x2.
-the line starts outside the lagoon, and every time we cross a boundary of the lagoon, we toggle from being
-outside to inside and vice versa. eventually, we should end up outside the lagoon again. we need to count how
-many tiles are inside each interior region (edges included), and repeat the process for every value of x2.
-what makes this use far less memory than the matrix flood fill is that we don't have to explicitly represent
-all the intermediate tiles. instead, we can count by subtracting adjacent intersections.
-
-Example of this process for one line:
-  
-    111111111111111
-    1             1
-    111   1111    1
-------*___#--*____#----------- line y=4 has four intersections
-      1   1  111111 
-    111 111
-    1   1  
-    11  111
-     1    1
-     111111
-
-The line of y=4 intersects at *, #, and the interior distances can be computed by subtracting the indices of # from 
-the previous *. This scales well no matter how big the numbers get, requiring only subtractions.
-
-To make it work, we'll have to sort the intersections in each row and then step through them in order. Each intersection
-will toggle interior to exterior.
-
-Another problem to fix involves horizontal lines:
-
-----*_____________#---------------- line y=7
-    1             1
-    111   1111    1
-      1   1  1    1
-      1   1  111111 
-    111 111
-    1   1  
-    11  111
-     1    1
-     111111
-
-Line y=7 counts towards the total, but I don't want to represent it as a large number of *s or #s. So when the
-digger has a 'L' or 'R' instruction, we'll have to remember the start and end points as special intersections that 
-do count towards the total, even if they would be considered topologically outside the lagoon.
-
-We could operate on columns instead of rows, but that only changes the problem from being 'L','R' to 'U','D'.
-
-  Update: actually, the horizontal lines aren't so bad because they are trivial to compute how much they add to the
-  total (no ambiguity about how much to add - it's always the known start and end points of that segment). They can
-  still interact with other line segments:
-  
-
-    111111111111111
-    1             1
-----*_#___#__#____#--------- line y=5
-      1   1  1    1
-      1   1  111111 
-    111 111
-    1   1  
-    11  111
-     1    1
-     111111
-  
-Line y=5 is interesting because it has two horizontal line segments, which combine to make it as if the line only
-entered and exited the lagoon once!
-
-A further improvement is possible: if the problem can guarantee that the lagoon is traversed in a clockwise direction,
-then every part of the lagoon can be analyzed as an independent area in terms of its vertices:
-
-
-....C#############A    line segment A spans 5 rows and adds A(x)*5 to the total because it's moving D
-....C#############A    line segment C spans 3 rows and subtracts C(x)*3 from the total because it's moving U
-....C@@----___####A
-@@@@@@@----___####A
-@@@@@@@----___####A    other line segments _ - @ also add and subtract from the total
-    111 111
-    1   1  
-    11  111
-     1    1
-     111111
-
-So rather than loop over the y lines in A, they can all be added at once because A was moving downward. For a 
-clockwise traversal, we'll define D as adding and U as subtracting. We can ignore L and R, as their effects
-will be counted as part of the rectangles defined by the U and D line segments.
-
-This area-based approach should further reduce the runtime, as compared to the y-line-based approach, which would
-have to store and iterate over all y values.
-
-  """
-
-  return 0
+  print(f'perimeter {perimeter}')
+  return area + perimeter
 
 
 class d18_VisitorInterp(d18Visitor):
