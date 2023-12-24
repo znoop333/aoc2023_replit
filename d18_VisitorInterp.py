@@ -130,6 +130,28 @@ We could operate on columns instead of rows, but that only changes the problem f
 Line y=5 is interesting because it has two horizontal line segments, which combine to make it as if the line only
 entered and exited the lagoon once!
 
+A further improvement is possible: if the problem can guarantee that the lagoon is traversed in a clockwise direction,
+then every part of the lagoon can be analyzed as an independent area in terms of its vertices:
+
+
+....C#############A    line segment A spans 5 rows and adds A(x)*5 to the total because it's moving D
+....C#############A    line segment C spans 3 rows and subtracts C(x)*3 from the total because it's moving U
+....C@@----___####A
+@@@@@@@----___####A
+@@@@@@@----___####A    other line segments _ - @ also add and subtract from the total
+    111 111
+    1   1  
+    11  111
+     1    1
+     111111
+
+So rather than loop over the y lines in A, they can all be added at once because A was moving downward. For a 
+clockwise traversal, we'll define D as adding and U as subtracting. We can ignore L and R, as their effects
+will be counted as part of the rectangles defined by the U and D line segments.
+
+This area-based approach should further reduce the runtime, as compared to the y-line-based approach, which would
+have to store and iterate over all y values.
+
   """
 
   return 0
