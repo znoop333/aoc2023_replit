@@ -89,3 +89,64 @@ will be counted as part of the rectangles defined by the U and D line segments.
 This area-based approach should further reduce the runtime, as compared to the y-line-based approach, which would
 have to store and iterate over all y values.
 
+Manually filling in the areas:
+
+111111111111111
+1             1
+111   1111    1
+  1   1  1    1
+  1   1  111111
+111 111
+1   1
+11  111
+ 1    1
+ 111111
+
+aaaaaaaaaaaaaaa
+1             1
+111   1111    1
+  1   1  1    1
+  1   1  111111
+111 111
+1   1
+11  111
+ 1    1
+ 111111
+
+aaaaaaaaaaaaaaa
+BbbbbbbbbbbbbbB
+BBBbbbBBBBbbbbB
+bbBbbbBbbBbbbbB
+bbBbbbBbbBBBBBB
+111 111
+1   1
+11  111
+ 1    1
+ 111111
+
+aaaaaaaaaaaaaaa
+BbbbbbbbbbbbbbB
+BBBbbbBBBBbbbbB
+bbBbbbBbbBbbbbB
+bbBbbbBbbcccccc
+111 111
+1   1
+11  111
+ 1    1
+ 111111
+
+aaaaaaaaaaaaaaa
+BbbbbbbbbbbbbbB
+DDDdddDDDBbbbbB
+ddDdddDddBbbbbB
+ddDdddDddcccccc
+111 111
+1   1
+11  111
+ 1    1
+ 111111
+
+
+
+
+

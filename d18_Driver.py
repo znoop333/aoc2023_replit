@@ -7,6 +7,7 @@ from d18_VisitorInterp import d18_VisitorInterp
 
 def main(argv):
   input_stream = FileStream('d18_test_input.txt', encoding='utf-8')
+  # input_stream = FileStream('d18_test_input3.txt', encoding='utf-8')
   # input_stream = FileStream('d18_input.txt', encoding='utf-8')
 
   lexer = d18Lexer(input_stream)
@@ -19,7 +20,7 @@ def main(argv):
     vinterp = d18_VisitorInterp()
     vinterp.visit(tree)
     print(vinterp.answer)
-    print(952408144115 - vinterp.answer)
+    # print(952408144115 - vinterp.answer)
 
 
 if __name__ == '__main__':
