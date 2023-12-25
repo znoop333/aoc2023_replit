@@ -14,6 +14,8 @@ from collections import defaultdict, deque
 import functools
 
 PART2 = True
+
+
 # PART2 = False
 
 
@@ -63,12 +65,13 @@ def solve_sparse_lagoon(instructions):
   x, y = 0, 0
   perimeter = 0
   for dir_, dist, _, _ in instructions:
-  # for _, _, dir_, dist in instructions:
+    # for _, _, dir_, dist in instructions:
     if dir_ == 'U':
-      area -= (x - x0) * dist
+      # if x0 < x:
+      area -= (x - x0 + 1) * (dist + 1)
       y += dist
     elif dir_ == 'D':
-      area += (x - x0 - 1) * (dist - 1)
+      area += (x - x0 + 1) * (dist - 1)
       y -= dist
     elif dir_ == 'R':
       # area += dist
@@ -79,7 +82,7 @@ def solve_sparse_lagoon(instructions):
 
     perimeter += dist
 
-  print(f'perimeter {perimeter}')
+  print(f'area {area}, perimeter {perimeter}, total {area + perimeter}')
   return area + perimeter
 
 

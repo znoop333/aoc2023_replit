@@ -198,4 +198,30 @@ or subtract their respective perimeter tiles.
 1.....1
 1111111
 
+Some of the problem: the left edge needs to be counted correctly in the example above. Suppose D uses x*(dist-1) to
+avoid double-counting the right edge:
+
+1111111
+1dddddD
+1dddddD
+ dddddD
+ dddddD
+1dddddD
+1dddddD
+1dddddD
+1dddddD
+111111D
+
+And U uses x*dist:
+
+1111111
+1.....1
+uuU...1
+uuU...1
+uuU...1
+uuU...1
+1.....1
+1.....1
+1.....1
+1111111
 
