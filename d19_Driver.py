@@ -17,8 +17,9 @@ def main(argv):
   if parser.getNumberOfSyntaxErrors() > 0:
     print("syntax errors")
   else:
-    vinterp = d19_VisitorInterp()
-    vinterp.visit(tree)
+    with open("d19_src.c", "w") as f:
+      vinterp = d19_VisitorInterp(f)
+      vinterp.visit(tree)
 
 
 if __name__ == '__main__':

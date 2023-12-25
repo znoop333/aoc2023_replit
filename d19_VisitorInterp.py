@@ -20,21 +20,22 @@ PART2 = False
 
 
 class d19_VisitorInterp(d19Visitor):
-  def __init__(self):
+  def __init__(self, filehandle):
     self.root = None
     self.parts = []
     self.answer = None
+    self.filehandle = filehandle
 
   # Visit a parse tree produced by d19Parser#start.
   def visitStart(self, ctx: d19Parser.StartContext):
     self.visitChildren(ctx)
 
-    print('int main(void) {')
-    print('int total = 0;')
+    s = 'int main(void) {\n'
+    s += 'int total = 0;\n'
     for p in self.parts:
-      print(f'    total += fn_in({p["x"]}, {p["m"]}, {p["a"]}, {p["s"]}, {p["total"]});')
-    print('printf("%d", total);')
-    print('}')
+      s += f'    total += fn_in({p["x"]}, {p["m"]}, {p["a"]}, {p["s"]}, {p["total"]});\n'
+    s += 'printf("%d", total);\n}\n'
+    self.filehandle.write(s)
 
   # Visit a parse tree produced by d19Parser#part.
   def visitPart(self, ctx: d19Parser.PartContext):
@@ -44,9 +45,9 @@ class d19_VisitorInterp(d19Visitor):
 
   # Visit a parse tree produced by d19Parser#rule.
   def visitRule(self, ctx: d19Parser.RuleContext):
-    print(f'int fn_{ctx.name.text}(int x, int m, int a, int s, int total) ' + '{')
+    self.filehandle.write(f'int fn_{ctx.name.text}(int x, int m, int a, int s, int total) ' + '\n{\n')
     self.visitChildren(ctx)
-    print('}\n')
+    self.filehandle.write('}\n\n')
 
   # Visit a parse tree produced by d19Parser#clause_list.
   def visitClause_list(self, ctx: d19Parser.Clause_listContext):
@@ -60,14 +61,14 @@ class d19_VisitorInterp(d19Visitor):
   def visitComparison(self, ctx: d19Parser.ComparisonContext):
     self.visitChildren(ctx)
     val = ctx.val.getChild(0).getText()
-    s = f'if ({ctx.attribute.text} {ctx.op.text} {ctx.rval.text}) '
+    s = f'if ({ctx.attribute.text} {ctx.op.text} {ctx.rval.text}) \n    '
     if val == 'R':
-      s += 'return 0;'
+      s += 'return 0;\n'
     elif val == 'A':
-      s += 'return total;'
+      s += 'return total;\n'
     else:
-      s += f'return fn_{val}(x, m, a, s, total);'
-    print(s)
+      s += f'return fn_{val}(x, m, a, s, total);\n'
+    self.filehandle.write(s)
 
   # Visit a parse tree produced by d19Parser#token.
   def visitToken(self, ctx: d19Parser.TokenContext):
@@ -77,10 +78,9 @@ class d19_VisitorInterp(d19Visitor):
     val = ctx.getChild(0).getText()
     s = ''
     if val == 'R':
-      s += 'return 0;'
+      s += 'return 0;\n'
     elif val == 'A':
-      s += 'return total;'
+      s += 'return total;\n'
     else:
-      s += f'return fn_{val}(x, m, a, s, total);'
-    print(s)
-    # self.visitChildren(ctx)
+      s += f'return fn_{val}(x, m, a, s, total);\n'
+    self.filehandle.write(s)
