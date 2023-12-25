@@ -19,8 +19,6 @@ def main(argv):
   else:
     vinterp = d19_VisitorInterp()
     vinterp.visit(tree)
-    print(vinterp.answer)
-    # print(952408144115 - vinterp.answer)
 
 
 if __name__ == '__main__':
