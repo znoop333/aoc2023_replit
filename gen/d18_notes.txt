@@ -147,6 +147,55 @@ ddDdddDddcccccc
  111111
 
 
+This is tricky! I'll make two simple test cases: d18_test_input2.txt draws a trivial 10x10 square, which should
+have a 100 tile area (split between an internal area of 8x8=64 and a perimeter of 4*(10-1)=36). d18_test_input3.txt
+has a 5x5 working area with a corner cut out of it to check that the perimeter calculation isn't producing bad results
+when doing a turn. Also, I should test the CW vs CCW walk of these trivial shapes to see if it breaks the sparse
+solution.
 
+Having done some testing, I think the problem is not the perimeter calculation, but the interaction between calculating
+the outer and inner areas when the path folds back on itself. The original d18_test_input.txt had this shape, which
+fails the basic testing:
+
+1111111
+1     1
+111   1
+  1   1
+  1   1
+111 111
+1   1
+11  111
+ 1    1
+ 111111
+
+I'll edit this shape to see which part of it causes the error to disappear, which will tell me where the bug is
+in my sparse code.
+
+1111111
+1     1
+111   1
+  1   1
+  1   1
+111   1
+1     1
+1     1
+1     1
+1111111
+
+Correct area is 66. Sparse area is 68 (perimeter 34). So why is the sparse calculation wrong? There are only two
+rectangles to calculate: A (the bigger, outer one marked by periods, which should add 8*5=40 tiles) and B (the subtractive,
+left-sided bulge that should remove 2*2=4 tiles). The perimeter should add 34 regardless, as A and B should not add
+or subtract their respective perimeter tiles.
+
+1111111
+1.....1
+111...1
+**1...1
+**1...1
+111...1
+1.....1
+1.....1
+1.....1
+1111111
 
 

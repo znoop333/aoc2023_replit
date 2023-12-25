@@ -13,8 +13,8 @@ from math import prod, lcm
 from collections import defaultdict, deque
 import functools
 
-# PART2 = True
-PART2 = False
+PART2 = True
+# PART2 = False
 
 
 def neighbors4_simple(row: int, col: int, graph: np.array):
@@ -44,7 +44,8 @@ def solve_sparse_lagoon(instructions):
   area = 0
   y0, y1, x0, x1 = 0, 0, 0, 0
   x, y = 0, 0
-  for _, _, dir_, dist in instructions:
+  # for _, _, dir_, dist in instructions:
+  for dir_, dist, _, _ in instructions:
     if dir_ == 'U':
       y += dist
     elif dir_ == 'D':
@@ -61,8 +62,8 @@ def solve_sparse_lagoon(instructions):
   # see d18_notes.txt for ideas behind the implementation below
   x, y = 0, 0
   perimeter = 0
-  # for _, _, dir_, dist in instructions:
   for dir_, dist, _, _ in instructions:
+  # for _, _, dir_, dist in instructions:
     if dir_ == 'U':
       area -= (x - x0) * dist
       y += dist
