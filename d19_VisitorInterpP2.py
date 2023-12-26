@@ -14,6 +14,52 @@ from collections import defaultdict, deque
 import functools
 
 
+def check_constant_outcome(workflows: dict):
+  # if a workflow can only end in one outcome, it can be deleted,
+  # and all references to it can be replaced with that outcome, disregarding any of the comparisons along the way.
+  can_be_removed = dict()
+  for name, instructions in workflows.items():
+    outcome = None
+    for i in instructions:
+      if outcome is None:
+        if i[0] in 'AR':
+          outcome = i[0]
+        elif i[0] == 'cmp':
+          outcome = i[4]
+        elif i[0] == 'call':
+          outcome = i[1]
+      else:
+        if i[0] in 'AR' and i[0] != outcome or \
+            i[0] == 'cmp' and i[4] != outcome or \
+            i[0] == 'call' and i[1] != outcome:
+          pass
+        else:
+          can_be_removed[name] = outcome
+
+  return can_be_removed
+
+
+def solve(workflows: dict):
+  answer = 0
+
+  # step 1: remove unnecessary workflows
+  can_be_removed = check_constant_outcome(workflows)
+  while can_be_removed:
+    for rm_name, new_op in can_be_removed.items():
+      del workflows[rm_name]
+      for name, instructions in workflows.items():
+        for i in instructions:
+          if i[0] == 'cmp' and i[4] == rm_name:
+            i[4] = new_op
+          elif i[0] == 'call' and i[1] == rm_name:
+            i[0] = new_op
+            del i[1]
+
+    can_be_removed = check_constant_outcome(workflows)
+
+  return answer
+
+
 class d19_VisitorInterpP2(d19Visitor):
   def __init__(self):
     self.root = None
@@ -24,7 +70,7 @@ class d19_VisitorInterpP2(d19Visitor):
   # Visit a parse tree produced by d19Parser#start.
   def visitStart(self, ctx: d19Parser.StartContext):
     self.visitChildren(ctx)
-    1
+    self.answer = solve(self.workflows)
 
   # Visit a parse tree produced by d19Parser#rule.
   def visitRule(self, ctx: d19Parser.RuleContext):
