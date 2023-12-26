@@ -13,11 +13,6 @@ from math import prod, lcm
 from collections import defaultdict, deque
 import functools
 
-PART2 = False
-
-
-# PART2 = True
-
 
 class d19_VisitorInterp(d19Visitor):
   def __init__(self, filehandle):
