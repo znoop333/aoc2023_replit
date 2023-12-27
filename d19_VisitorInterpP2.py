@@ -40,34 +40,13 @@ def check_constant_outcome(workflows: dict):
   return can_be_removed
 
 
-def remove_redundant_if(workflows: dict):
-  n_simplified = 0
-
-  for name, instructions in workflows.items():
-    current_instructions = copy(instructions)
-    # if name in ['kxq', 'pv']:
-    #   1
-    for n in range(len(current_instructions) - 1, 0, -1):
-      i = current_instructions[n]
-      if i[0] in 'AR' and instructions[n - 1][0] == 'cmp' and instructions[n - 1][4] == i[0]:
-        print(f'Simplifying {name} at {instructions[n - 1]} and {instructions[n]} to {i[0]}')
-        instructions[n - 1] = [i[0]]
-        del instructions[n]
-        n_simplified += 1
-
-  print(f'{n_simplified} simplifications total')
-  return n_simplified
-
-
-def solve(workflows: dict):
-  answer = 0
-  n_workflows = len(workflows.keys())
-
-  # step 1: remove unnecessary workflows
+def remove_unnecessary_workflows(workflows: dict):
+  n_removed = 0
   can_be_removed = check_constant_outcome(workflows)
   while can_be_removed:
     for rm_name, new_op in can_be_removed.items():
       del workflows[rm_name]
+      n_removed += 1
       for name, instructions in workflows.items():
         for i in instructions:
           if i[0] == 'cmp' and i[4] == rm_name:
@@ -78,14 +57,63 @@ def solve(workflows: dict):
 
     can_be_removed = check_constant_outcome(workflows)
 
-  n_workflows1 = len(workflows.keys())
-  print(f'Before {n_workflows}, after {n_workflows1}, {n_workflows - n_workflows1} removed')
+  return n_removed
 
-  # step 2: simplify redundant conditions
+
+def remove_redundant_if(workflows: dict):
+  # example:
   # kxq{x<2775:R,x>2923:A,A}
   # the clause x>2923:A,A  can be replaced with A because the value of X doesn't actually matter
   # pv{x<3403:R,m>1175:A,x<3663:A,A}  -- similar for x<3663:A,A
-  n_simplified = remove_redundant_if(workflows)
+  n_simplified = 0
+
+  for name, instructions in workflows.items():
+    current_instructions = copy(instructions)
+    for n in range(len(current_instructions) - 1, 0, -1):
+      i = current_instructions[n]
+      if i[0] in 'AR' and instructions[n - 1][0] == 'cmp' and instructions[n - 1][4] == i[0]:
+        # print(f'Simplifying {name} at {instructions[n - 1]} and {instructions[n]} to {i[0]}')
+        instructions[n - 1] = [i[0]]
+        del instructions[n]
+        n_simplified += 1
+
+  # print(f'{n_simplified} simplifications total')
+  return n_simplified
+
+
+def workflow_to_constraint(wf: list = [['cmp', 'm', '<', 151, 'R'], ['cmp', 's', '>', 3876, 'R'], ['A']]):
+  # convert a workflow from instructions into a set of constraints leading to an 'A'.
+  # e.g., from 'cm' : [['cmp', 'm', '<', 151, 'R'], ['cmp', 's', '>', 3876, 'R'], ['A']]
+  # should become {'m': range(151, 4001), 's': range(1, 3876), 'x': range(1, 4001), 'a': range(1, 4001)}
+  # because the only way to reach 'A' is for the first and second cmps to both be false.
+  # from that constraint, the number of valid inputs is the product of the ranges.
+  # if there were no conditions in the constraint, the number would be 4000**4
+
+  # if there are multiple ways to reach 'A', the output is an OR of ANDs:
+  # from 'vjd' : [['cmp', 'm', '>', 3232, 'A'], ['cmp', 'm', '>', 3185, 'A'], ['R']]
+  # this should produce two constraints, either of which will work:
+  # {'m': range(3233, 4001)}  OR
+  # {'m': range(1, 3232) AND range(3186, 4000) } ==> {'m': range(3186, 3231)}
+
+  1
+
+
+def solve(workflows: dict):
+  answer = 0
+
+  while True:
+    # step 1: remove unnecessary workflows
+    n_removed = remove_unnecessary_workflows(workflows)
+    if n_removed:
+      print(f'Removed {n_removed} unnecessary workflows')
+
+    # step 2: simplify redundant conditions
+    n_simplified = remove_redundant_if(workflows)
+    if n_simplified:
+      print(f'Simplified {n_simplified} clauses')
+
+    if not n_removed and not n_simplified:
+      break
 
   return answer
 
