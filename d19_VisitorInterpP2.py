@@ -32,15 +32,16 @@ def check_constant_outcome(workflows: dict):
         if i[0] in 'AR' and i[0] != outcome or \
             i[0] == 'cmp' and i[4] != outcome or \
             i[0] == 'call' and i[1] != outcome:
-          pass
-        else:
-          can_be_removed[name] = outcome
+          break
+    else:
+      can_be_removed[name] = outcome
 
   return can_be_removed
 
 
 def solve(workflows: dict):
   answer = 0
+  n_workflows = len(workflows.keys())
 
   # step 1: remove unnecessary workflows
   can_be_removed = check_constant_outcome(workflows)
@@ -56,6 +57,14 @@ def solve(workflows: dict):
             del i[1]
 
     can_be_removed = check_constant_outcome(workflows)
+
+  n_workflows1 = len(workflows.keys())
+  print(f'Before {n_workflows}, after {n_workflows1}, {n_workflows - n_workflows1} removed')
+
+  # step 2: simplify redundant conditions
+  # kxq{x<2775:R,x>2923:A,A}
+  # the clause x>2923:A,A  can be replaced with A because the value of X doesn't actually matter
+  # pv{x<3403:R,m>1175:A,x<3663:A,A}  -- similar
 
   return answer
 

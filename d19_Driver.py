@@ -10,9 +10,9 @@ PART2 = True
 
 
 def main(argv):
-  input_stream = FileStream('d19_test_input.txt', encoding='utf-8')
+  # input_stream = FileStream('d19_test_input.txt', encoding='utf-8')
   # input_stream = FileStream('d19_test_input4.txt', encoding='utf-8')
-  # input_stream = FileStream('d19_input.txt', encoding='utf-8')
+  input_stream = FileStream('d19_input.txt', encoding='utf-8')
 
   lexer = d19Lexer(input_stream)
   stream = CommonTokenStream(lexer)
