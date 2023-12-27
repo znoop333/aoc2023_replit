@@ -4,6 +4,7 @@ from antlr4 import *
 from gen.d19Lexer import d19Lexer
 from gen.d19Parser import d19Parser
 from gen.d19Visitor import d19Visitor
+from copy import copy
 import numpy as np
 from dataclasses import dataclass
 from typing import List, Dict
@@ -39,6 +40,25 @@ def check_constant_outcome(workflows: dict):
   return can_be_removed
 
 
+def remove_redundant_if(workflows: dict):
+  n_simplified = 0
+
+  for name, instructions in workflows.items():
+    current_instructions = copy(instructions)
+    # if name in ['kxq', 'pv']:
+    #   1
+    for n in range(len(current_instructions) - 1, 0, -1):
+      i = current_instructions[n]
+      if i[0] in 'AR' and instructions[n - 1][0] == 'cmp' and instructions[n - 1][4] == i[0]:
+        print(f'Simplifying {name} at {instructions[n - 1]} and {instructions[n]} to {i[0]}')
+        instructions[n - 1] = [i[0]]
+        del instructions[n]
+        n_simplified += 1
+
+  print(f'{n_simplified} simplifications total')
+  return n_simplified
+
+
 def solve(workflows: dict):
   answer = 0
   n_workflows = len(workflows.keys())
@@ -64,7 +84,8 @@ def solve(workflows: dict):
   # step 2: simplify redundant conditions
   # kxq{x<2775:R,x>2923:A,A}
   # the clause x>2923:A,A  can be replaced with A because the value of X doesn't actually matter
-  # pv{x<3403:R,m>1175:A,x<3663:A,A}  -- similar
+  # pv{x<3403:R,m>1175:A,x<3663:A,A}  -- similar for x<3663:A,A
+  n_simplified = remove_redundant_if(workflows)
 
   return answer
 
