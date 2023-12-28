@@ -81,7 +81,48 @@ def remove_redundant_if(workflows: dict):
   return n_simplified
 
 
-def workflow_to_constraint(wf: list):
+def get_constraints(clause: list):
+  if clause[0] != 'cmp':
+    return {'val': clause[1]}, {'val': clause[1]}
+  if clause[2] == '>':
+    constraint_true = {clause[1]: range(clause[3] + 1, 4000), 'val': clause[4]}
+    constraint_false = {clause[1]: range(1, clause[3]), 'val': None}
+  else:
+    constraint_true = {clause[1]: range(1, clause[3] - 1), 'val': clause[4]}
+    constraint_false = {clause[1]: range(clause[3], 4000), 'val': None}
+  return constraint_true, constraint_false
+
+
+def intersect_constraints(c1: dict, c2: dict):
+  intersected = {}
+  for w in 'xmas':
+    if w in c1 and w in c2:
+      lb = max(c1[w].start, c2[w].start)
+      ub = min(c1[w].stop, c2[w].stop)
+      if lb <= ub:
+        intersected[w] = range(lb, ub)
+      else:
+        intersected[w] = None
+    elif w in c1:
+      intersected[w] = c1[w]
+    elif w in c2:
+      intersected[w] = c2[w]
+  return intersected
+
+
+def count_valid_solutions(c1: dict):
+  counted = 1
+  for w in 'xmas':
+    if w in c1:
+      if c1[w] is None:
+        return 0
+      counted *= len(c1[w]) + 1
+    else:
+      counted *= 4000
+  return counted
+
+
+def workflow_to_constraint(wf: dict):
   # convert a workflow from instructions into a set of constraints leading to an 'A'.
   # e.g., from 'cm' : [['cmp', 'm', '<', 151, 'R'], ['cmp', 's', '>', 3876, 'R'], ['A']]
   # should become {'m': range(151, 4001), 's': range(1, 3876), 'x': range(1, 4001), 'a': range(1, 4001)}
@@ -99,50 +140,22 @@ def workflow_to_constraint(wf: list):
   # even though python doesn't treat it as such. the main effect is that len(range(1,10))
   # returns 9, but I want to treat it as length 10.
 
-  def get_constraints(clause: list):
-    if clause[0] != 'cmp':
-      return None, None
-    if clause[2] == '>':
-      constraint_true = {clause[1]: range(clause[3] + 1, 4000), 'val': clause[4]}
-      constraint_false = {clause[1]: range(1, clause[3]), 'val': None}
-    else:
-      constraint_true = {clause[1]: range(1, clause[3] - 1), 'val': clause[4]}
-      constraint_false = {clause[1]: range(clause[3], 4000), 'val': None}
-    return constraint_true, constraint_false
-
   clause1 = ['cmp', 'm', '>', 3232, 'A']
   constraint1t, constraint1f = get_constraints(clause1)
   clause2 = ['cmp', 'm', '>', 3185, 'A']
   constraint2t, constraint2f = get_constraints(clause2)
 
-  def intersect_constraints(c1: dict, c2: dict):
-    intersected = {}
-    for w in 'xmas':
-      if w in c1 and w in c2:
-        lb = max(c1[w].start, c2[w].start)
-        ub = min(c1[w].stop, c2[w].stop)
-        if lb <= ub:
-          intersected[w] = range(lb, ub)
-        else:
-          intersected[w] = None
-      elif w in c1:
-        intersected[w] = c1[w]
-      elif w in c2:
-        intersected[w] = c2[w]
-    return intersected
+  queue = deque()
+  queue.append(wf['in'])
+  current_constraints = {}
+  while queue:
+    clauses = queue.popleft()
+    for clause in clauses:
+      if_true, if_false = get_constraints(clause)
+
+  constraint2t, constraint2f = get_constraints(wf['fnv'])
 
   new_clause = intersect_constraints(constraint1f, constraint2t)
-
-  def count_valid_solutions(clause: dict):
-    counted = 1
-    for w in 'xmas':
-      if w in clause:
-        if clause[w] is None:
-          return 0
-        counted *= len(clause[w]) + 1
-      else:
-        counted *= 4000
-    return counted
 
   print(f'{count_valid_solutions(new_clause)}')
 
