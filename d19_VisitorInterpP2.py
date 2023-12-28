@@ -95,7 +95,37 @@ def workflow_to_constraint(wf: list = [['cmp', 'm', '<', 151, 'R'], ['cmp', 's',
   # {'m': range(3233, 4001)}  OR
   # {'m': range(1, 3232) AND range(3186, 4000) } ==> {'m': range(3186, 3231)}
 
-  1
+  # I'm going to abuse the range() by treating the upper bound as inclusive,
+  # even though python doesn't treat it as such. the main effect is that len(range(1,10))
+  # returns 9 but I want to treat it as 10.
+
+  def get_constraints(clause: list):
+    if clause[0] != 'cmp':
+      return None, None
+    if clause[2]=='>':
+      constraint_true = {clause[1]: range(clause[3]+1, 4000)} 
+      constraint_false = {clause[1]: range(1, clause[3])}
+    else:
+      constraint_true = {clause[1]: range(1, clause[3]-1)}
+      constraint_false = {clause[1]: range(clause[3], 4000)}
+    return constraint_true, constraint_false
+  
+  clause1 = ['cmp', 'm', '>', 3232, 'A']
+  constraint1t, constraint1f = get_constraints(clause1)
+  clause2 = ['cmp', 'm', '>', 3185, 'A']
+  constraint2t, constraint2f = get_constraints(clause2)
+
+  def intersection_constraints(c1: dict, c2: dict):
+    intersected = {}
+    for w in 'xmas':
+      if w in c1 and w in c2:
+        3
+      elif w in c1:
+        intersected[w] = c1[w]
+      elif w in c2:
+        intersected[w] = c2[w]
+    return intersected
+        
 
 
 def solve(workflows: dict):
