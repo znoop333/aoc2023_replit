@@ -81,7 +81,7 @@ def remove_redundant_if(workflows: dict):
   return n_simplified
 
 
-def workflow_to_constraint(wf: list = [['cmp', 'm', '<', 151, 'R'], ['cmp', 's', '>', 3876, 'R'], ['A']]):
+def workflow_to_constraint(wf: list):
   # convert a workflow from instructions into a set of constraints leading to an 'A'.
   # e.g., from 'cm' : [['cmp', 'm', '<', 151, 'R'], ['cmp', 's', '>', 3876, 'R'], ['A']]
   # should become {'m': range(151, 4001), 's': range(1, 3876), 'x': range(1, 4001), 'a': range(1, 4001)}
@@ -97,35 +97,56 @@ def workflow_to_constraint(wf: list = [['cmp', 'm', '<', 151, 'R'], ['cmp', 's',
 
   # I'm going to abuse the range() by treating the upper bound as inclusive,
   # even though python doesn't treat it as such. the main effect is that len(range(1,10))
-  # returns 9 but I want to treat it as 10.
+  # returns 9, but I want to treat it as length 10.
 
   def get_constraints(clause: list):
     if clause[0] != 'cmp':
       return None, None
-    if clause[2]=='>':
-      constraint_true = {clause[1]: range(clause[3]+1, 4000)} 
-      constraint_false = {clause[1]: range(1, clause[3])}
+    if clause[2] == '>':
+      constraint_true = {clause[1]: range(clause[3] + 1, 4000), 'val': clause[4]}
+      constraint_false = {clause[1]: range(1, clause[3]), 'val': None}
     else:
-      constraint_true = {clause[1]: range(1, clause[3]-1)}
-      constraint_false = {clause[1]: range(clause[3], 4000)}
+      constraint_true = {clause[1]: range(1, clause[3] - 1), 'val': clause[4]}
+      constraint_false = {clause[1]: range(clause[3], 4000), 'val': None}
     return constraint_true, constraint_false
-  
+
   clause1 = ['cmp', 'm', '>', 3232, 'A']
   constraint1t, constraint1f = get_constraints(clause1)
   clause2 = ['cmp', 'm', '>', 3185, 'A']
   constraint2t, constraint2f = get_constraints(clause2)
 
-  def intersection_constraints(c1: dict, c2: dict):
+  def intersect_constraints(c1: dict, c2: dict):
     intersected = {}
     for w in 'xmas':
       if w in c1 and w in c2:
-        3
+        lb = max(c1[w].start, c2[w].start)
+        ub = min(c1[w].stop, c2[w].stop)
+        if lb <= ub:
+          intersected[w] = range(lb, ub)
+        else:
+          intersected[w] = None
       elif w in c1:
         intersected[w] = c1[w]
       elif w in c2:
         intersected[w] = c2[w]
     return intersected
-        
+
+  new_clause = intersect_constraints(constraint1f, constraint2t)
+
+  def count_valid_solutions(clause: dict):
+    counted = 1
+    for w in 'xmas':
+      if w in clause:
+        if clause[w] is None:
+          return 0
+        counted *= len(clause[w]) + 1
+      else:
+        counted *= 4000
+    return counted
+
+  print(f'{count_valid_solutions(new_clause)}')
+
+  1
 
 
 def solve(workflows: dict):
@@ -144,6 +165,8 @@ def solve(workflows: dict):
 
     if not n_removed and not n_simplified:
       break
+
+  workflow_to_constraint(workflows)
 
   return answer
 
