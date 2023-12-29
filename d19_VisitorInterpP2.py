@@ -94,6 +94,11 @@ def get_constraints(clause: list):
 
 
 def intersect_constraints(c1: dict, c2: dict):
+  # if there are multiple ways to reach 'A', the output is an OR of ANDs:
+  # from 'vjd' : [['cmp', 'm', '>', 3232, 'A'], ['cmp', 'm', '>', 3185, 'A'], ['R']]
+  # this should produce two constraints, either of which will work:
+  # {'m': range(3233, 4001)}  OR
+  # {'m': range(1, 3232) AND range(3186, 4000) } ==> {'m': range(3186, 3231)}
   intersected = {}
   for w in 'xmas':
     if w in c1 and w in c2:
@@ -111,6 +116,9 @@ def intersect_constraints(c1: dict, c2: dict):
 
 
 def count_valid_solutions(c1: dict):
+  # I'm going to abuse the range() by treating the upper bound as inclusive
+  # even though python doesn't treat it as such. the main effect is that len(range(1,10))
+  # returns 9, but I want to treat it as length 10.
   counted = 1
   for w in 'xmas':
     if w in c1:
@@ -122,44 +130,51 @@ def count_valid_solutions(c1: dict):
   return counted
 
 
-def workflow_to_constraint(wf: dict):
+def workflow_constraint_solver(wf: dict):
   # convert a workflow from instructions into a set of constraints leading to an 'A'.
   # e.g., from 'cm' : [['cmp', 'm', '<', 151, 'R'], ['cmp', 's', '>', 3876, 'R'], ['A']]
-  # should become {'m': range(151, 4001), 's': range(1, 3876), 'x': range(1, 4001), 'a': range(1, 4001)}
+  # should become {'m': range(151, 4000), 's': range(1, 3876)}
   # because the only way to reach 'A' is for the first and second cmps to both be false.
   # from that constraint, the number of valid inputs is the product of the ranges.
   # if there were no conditions in the constraint, the number would be 4000**4
 
-  # if there are multiple ways to reach 'A', the output is an OR of ANDs:
-  # from 'vjd' : [['cmp', 'm', '>', 3232, 'A'], ['cmp', 'm', '>', 3185, 'A'], ['R']]
-  # this should produce two constraints, either of which will work:
-  # {'m': range(3233, 4001)}  OR
-  # {'m': range(1, 3232) AND range(3186, 4000) } ==> {'m': range(3186, 3231)}
-
-  # I'm going to abuse the range() by treating the upper bound as inclusive,
-  # even though python doesn't treat it as such. the main effect is that len(range(1,10))
-  # returns 9, but I want to treat it as length 10.
-
-  clause1 = ['cmp', 'm', '>', 3232, 'A']
-  constraint1t, constraint1f = get_constraints(clause1)
-  clause2 = ['cmp', 'm', '>', 3185, 'A']
-  constraint2t, constraint2f = get_constraints(clause2)
+  num_solutions = 0
 
   queue = deque()
-  queue.append(wf['in'])
-  current_constraints = {}
+  queue.append(('in', {}))
+
   while queue:
-    clauses = queue.popleft()
+    wf_name, current_constraints = queue.popleft()
+    if wf_name == 'R':
+      print(f'Rejecting at {current_constraints}!')
+      continue
+    elif wf_name == 'A':
+      print(f'Accepting at {current_constraints}!')
+      num_solutions += count_valid_solutions(current_constraints)
+      continue
+
+    clauses = wf[wf_name]
     for clause in clauses:
       if_true, if_false = get_constraints(clause)
+      current_constraints1 = intersect_constraints(current_constraints, if_true)
+      if not count_valid_solutions(current_constraints1):
+        print(f'Impossible to continue with {current_constraints1} from if_true {if_true} and {current_constraints}')
+      else:
+        if clause[0] == 'cmp':
+          queue.append((clause[4], current_constraints1))
+        elif clause[0] in 'AR':
+          queue.append((clause[0], current_constraints1))
+        elif clause[0] == 'call':
+          queue.append((clause[1], current_constraints1))
 
-  constraint2t, constraint2f = get_constraints(wf['fnv'])
+      current_constraints2 = intersect_constraints(current_constraints, if_false)
+      if not count_valid_solutions(current_constraints2):
+        print(f'Impossible to continue with {current_constraints2} from if_false {if_false} and {current_constraints}')
+      else:
+        # continue with the next clause under the constraint that the current clause was false
+        current_constraints = current_constraints2
 
-  new_clause = intersect_constraints(constraint1f, constraint2t)
-
-  print(f'{count_valid_solutions(new_clause)}')
-
-  1
+  return num_solutions
 
 
 def solve(workflows: dict):
@@ -179,7 +194,7 @@ def solve(workflows: dict):
     if not n_removed and not n_simplified:
       break
 
-  workflow_to_constraint(workflows)
+  answer = workflow_constraint_solver(workflows)
 
   return answer
 
