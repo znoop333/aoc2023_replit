@@ -82,8 +82,10 @@ def remove_redundant_if(workflows: dict):
 
 
 def get_constraints(clause: list):
-  if clause[0] != 'cmp':
-    return {'val': clause[1]}, {'val': clause[1]}
+  if clause[0] == 'R':
+    return {'x': None}, {'x': None}
+  if clause[0] == 'A' or clause[0] == 'call':
+    return {}, {}
   if clause[2] == '>':
     constraint_true = {clause[1]: range(clause[3] + 1, 4000), 'val': clause[4]}
     constraint_false = {clause[1]: range(1, clause[3]), 'val': None}
@@ -102,11 +104,15 @@ def intersect_constraints(c1: dict, c2: dict):
   intersected = {}
   for w in 'xmas':
     if w in c1 and w in c2:
+      if c1[w] is None or c2[w] is None:
+        intersected[w] = None
+        return intersected
       lb = max(c1[w].start, c2[w].start)
       ub = min(c1[w].stop, c2[w].stop)
       if lb <= ub:
         intersected[w] = range(lb, ub)
       else:
+        # very important! This None marks this intersection as being impossible to satisfy
         intersected[w] = None
     elif w in c1:
       intersected[w] = c1[w]
@@ -123,6 +129,7 @@ def count_valid_solutions(c1: dict):
   for w in 'xmas':
     if w in c1:
       if c1[w] is None:
+        # this is where we detect impossible intersections
         return 0
       counted *= len(c1[w]) + 1
     else:
@@ -170,9 +177,10 @@ def workflow_constraint_solver(wf: dict):
       current_constraints2 = intersect_constraints(current_constraints, if_false)
       if not count_valid_solutions(current_constraints2):
         print(f'Impossible to continue with {current_constraints2} from if_false {if_false} and {current_constraints}')
-      else:
-        # continue with the next clause under the constraint that the current clause was false
-        current_constraints = current_constraints2
+        break
+
+      # continue with the next clause under the constraint that the current clause was false
+      current_constraints = current_constraints2
 
   return num_solutions
 
@@ -195,6 +203,7 @@ def solve(workflows: dict):
       break
 
   answer = workflow_constraint_solver(workflows)
+  print(f'The answer was {answer}')
 
   return answer
 
