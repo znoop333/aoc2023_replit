@@ -35,7 +35,7 @@ def reflect_ud(puzzle):
     if num_errors > max_smudges:
       continue
     if max_smudges and num_errors == max_smudges:
-      smudges += 1
+      smudges += num_errors
 
     if r == 0:
       ud_mirrors = 1
@@ -47,10 +47,12 @@ def reflect_ud(puzzle):
                     range(r + 2, r + max_rows + 2, 1),
                     strict=True):
       num_errors = np.count_nonzero(puzzle[i, :] != puzzle[j, :])
-      if num_errors:
+      if num_errors + smudges > max_smudges:
         break
+      smudges += num_errors
     else:
       ud_mirrors = r + 1
+      break
   return ud_mirrors
 
 
@@ -68,8 +70,14 @@ def main():
 
   answer = 0
   for p in puzzles:
-    answer += 100 * reflect_ud(p) + reflect_lr(p)
-    print(reflect_ud(p), reflect_lr(p))
+    ud = reflect_ud(p)
+    lr = reflect_lr(p)
+    if not PART_2:
+      answer += 100 * ud + lr
+    else:
+      answer += 100 * ud
+
+    print(ud, lr)
 
   print(f'answer is {answer}')
 
