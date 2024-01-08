@@ -2,7 +2,8 @@ import numpy as np
 from collections import defaultdict, deque
 from math import prod, sqrt, floor, ceil
 
-PART_2 = False
+# PART_2 = False
+PART_2 = True
 
 
 def parse_input(input: str):
@@ -23,21 +24,33 @@ def parse_input(input: str):
 def reflect_ud(puzzle):
   rows, cols = puzzle.shape
   ud_mirrors = 0
-  for r in range(0, rows - 1):
-    if np.all(puzzle[r, :] == puzzle[r + 1, :]):
-      if r == 0:
-        ud_mirrors = 1
-        continue
+  if not PART_2:
+    max_smudges = 0
+  else:
+    max_smudges = 1
 
-      max_rows = min(r, rows - r - 2)
-      # print(f'max_rows: {max_rows} must check {range(r - 1, r - max_rows - 1, -1)} against {range(r + 2, r + max_rows + 2, 1)}')
-      for i, j in zip(range(r - 1, r - max_rows - 1, -1),
-                      range(r + 2, r + max_rows + 2, 1),
-                      strict=True):
-        if np.any(puzzle[i, :] != puzzle[j, :]):
-          break
-      else:
-        ud_mirrors = r + 1
+  for r in range(0, rows - 1):
+    smudges = 0
+    num_errors = np.count_nonzero(puzzle[r, :] != puzzle[r + 1, :])
+    if num_errors > max_smudges:
+      continue
+    if max_smudges and num_errors == max_smudges:
+      smudges += 1
+
+    if r == 0:
+      ud_mirrors = 1
+      continue
+
+    max_rows = min(r, rows - r - 2)
+    # print(f'max_rows: {max_rows} must check {range(r - 1, r - max_rows - 1, -1)} against {range(r + 2, r + max_rows + 2, 1)}')
+    for i, j in zip(range(r - 1, r - max_rows - 1, -1),
+                    range(r + 2, r + max_rows + 2, 1),
+                    strict=True):
+      num_errors = np.count_nonzero(puzzle[i, :] != puzzle[j, :])
+      if num_errors:
+        break
+    else:
+      ud_mirrors = r + 1
   return ud_mirrors
 
 
@@ -46,8 +59,8 @@ def reflect_lr(puzzle):
 
 
 def main():
-  with open("d13_input.txt", "r") as f:
-    # with open("d13_test_input.txt", "r") as f:
+  # with open("d13_input.txt", "r") as f:
+  with open("d13_test_input.txt", "r") as f:
     input = f.read()
 
   puzzles = parse_input(input)
