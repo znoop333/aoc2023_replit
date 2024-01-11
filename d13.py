@@ -58,7 +58,7 @@ def reflect_lr(puzzle):
 
 def main():
   with open("d13_input.txt", "r") as f:
-  # with open("d13_test_input.txt", "r") as f:
+    # with open("d13_test_input.txt", "r") as f:
     input = f.read()
 
   puzzles = parse_input(input)
@@ -67,10 +67,7 @@ def main():
   for p in puzzles:
     ud = reflect_ud(p)
     lr = reflect_lr(p)
-    if not PART_2:
-      answer += 100 * ud + lr
-    else:
-      answer += 100 * ud
+    answer += 100 * ud + lr
 
     # print(p)
     print(ud, lr)
