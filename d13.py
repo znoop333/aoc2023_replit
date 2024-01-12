@@ -34,7 +34,7 @@ def reflect_ud(puzzle):
     if smudges > max_smudges:
       continue
 
-    if r == 0:
+    if r == 0 and smudges == max_smudges:
       ud_mirrors = 1
       break
 
@@ -43,9 +43,10 @@ def reflect_ud(puzzle):
     for i, j in zip(range(r - 1, r - max_rows - 1, -1),
                     range(r + 2, r + max_rows + 2, 1),
                     strict=True):
-      smudges += np.count_nonzero(puzzle[i, :] != puzzle[j, :])
-      if smudges > max_smudges:
+      num_errors = np.count_nonzero(puzzle[i, :] != puzzle[j, :])
+      if smudges + num_errors > max_smudges:
         break
+      smudges += num_errors
     else:
       ud_mirrors = r + 1
       break
@@ -58,7 +59,7 @@ def reflect_lr(puzzle):
 
 def main():
   with open("d13_input.txt", "r") as f:
-    # with open("d13_test_input.txt", "r") as f:
+  # with open("d13_test_input.txt", "r") as f:
     input = f.read()
 
   puzzles = parse_input(input)
