@@ -2,8 +2,17 @@ import numpy as np
 from collections import defaultdict, deque
 from math import prod, sqrt, floor, ceil
 
-# PART_2 = False
-PART_2 = True
+PART_2 = False
+# PART_2 = True
+
+"""
+PART_2: 
+In each pattern, fix the smudge and find the different line of reflection. What number do you get after summarizing the
+new reflection line in each pattern in your notes?
+
+Does that mean I must determine which line had the original solution in part1 and make sure I do not use that line for
+the part2 solution?
+"""
 
 
 def parse_input(input: str):
@@ -58,8 +67,8 @@ def reflect_lr(puzzle):
 
 
 def main():
-  with open("d13_input.txt", "r") as f:
-  # with open("d13_test_input.txt", "r") as f:
+  # with open("d13_input.txt", "r") as f:
+  with open("d13_test_input.txt", "r") as f:
     input = f.read()
 
   puzzles = parse_input(input)
