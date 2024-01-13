@@ -12,6 +12,8 @@ new reflection line in each pattern in your notes?
 
 Does that mean I must determine which line had the original solution in part1 and make sure I do not use that line for
 the part2 solution?
+
+Or does it mean that UD and LR must both use the same smudge?
 """
 
 
@@ -32,7 +34,6 @@ def parse_input(input: str):
 
 def reflect_ud(puzzle):
   rows, cols = puzzle.shape
-  ud_mirrors = 0
   if not PART_2:
     max_smudges = 0
   else:
@@ -44,8 +45,13 @@ def reflect_ud(puzzle):
       continue
 
     if r == 0 and smudges == max_smudges:
-      ud_mirrors = 1
-      break
+      if smudges == 1:
+        smudge_location = 0, np.nonzero(puzzle[r, :] != puzzle[r + 1, :])[0][0]
+        yield 1, smudge_location
+        continue
+      else:
+        yield 1, None
+        continue
 
     max_rows = min(r, rows - r - 2)
     # print(f'max_rows: {max_rows} must check {range(r - 1, r - max_rows - 1, -1)} against {range(r + 2, r + max_rows + 2, 1)}')
@@ -53,13 +59,17 @@ def reflect_ud(puzzle):
                     range(r + 2, r + max_rows + 2, 1),
                     strict=True):
       num_errors = np.count_nonzero(puzzle[i, :] != puzzle[j, :])
+
+      if num_errors == 1:
+        smudge_location = r, np.nonzero(puzzle[i, :] != puzzle[j, :])[0][0]
+      else:
+        smudge_location = None
+
       if smudges + num_errors > max_smudges:
         break
       smudges += num_errors
     else:
-      ud_mirrors = r + 1
-      break
-  return ud_mirrors
+      yield r + 1, smudge_location
 
 
 def reflect_lr(puzzle):
@@ -75,8 +85,12 @@ def main():
 
   answer = 0
   for p in puzzles:
-    ud = reflect_ud(p)
-    lr = reflect_lr(p)
+    for ud_, smudge_loc in reflect_ud(p):
+      ud = ud_
+
+    for lr_, smudge_loc in reflect_lr(p):
+      lr = lr_
+
     answer += 100 * ud + lr
 
     # print(p)
